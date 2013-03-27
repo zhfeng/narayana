@@ -4,6 +4,8 @@ import org.jboss.jbossts.xts.recovery.participant.at.XTSATRecoveryModule;
 import org.jboss.jbossts.xts.recovery.participant.at.XTSATRecoveryManager;
 import org.jboss.jbossts.xts.servicetests.service.Constants;
 import org.jboss.jbossts.xts.servicetests.service.participant.DurableTestParticipant;
+import org.jboss.logging.Logger;
+
 import com.arjuna.wst.Durable2PCParticipant;
 
 import java.io.ObjectInputStream;
@@ -24,6 +26,11 @@ public class TestATRecoveryModule implements XTSATRecoveryModule
      * a count of how many xts test services are currently installed
      */
     private static int serviceCount = 0;
+    
+    /**
+     * log
+     */
+    private static Logger log = org.jboss.logging.Logger.getLogger(TestATRecoveryModule.class);
 
     /**
      * called during deployment of a test service to ensure the recovery module for the
@@ -35,7 +42,9 @@ public class TestATRecoveryModule implements XTSATRecoveryModule
             theRecoveryModule = new TestATRecoveryModule();
         }
         if (serviceCount == 0) {
+            log.info("registering TestATRecoveryModule");
             XTSATRecoveryManager.getRecoveryManager().registerRecoveryModule(theRecoveryModule);
+            log.info("registered TestATRecoveryModule");
         }
         serviceCount++;
     }

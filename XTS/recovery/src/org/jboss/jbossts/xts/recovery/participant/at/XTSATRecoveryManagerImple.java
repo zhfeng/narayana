@@ -2,6 +2,7 @@ package org.jboss.jbossts.xts.recovery.participant.at;
 
 import com.arjuna.ats.arjuna.objectstore.TxLog;
 import org.jboss.jbossts.xts.recovery.logging.RecoveryLogger;
+import org.jboss.logging.Logger;
 
 import com.arjuna.ats.arjuna.state.OutputObjectState;
 import com.arjuna.ats.arjuna.common.Uid;
@@ -35,12 +36,15 @@ public class XTSATRecoveryManagerImple extends XTSATRecoveryManager {
      */
     public void registerRecoveryModule(XTSATRecoveryModule module) throws NullPointerException
     {
+        log.info("enter registerRecoveryModule");
         // TODO other sanity checks?
         if (module == null) {
             throw new NullPointerException("XTSATRecoveryModule value must be non-null");
         }
         synchronized (recoveryModules) {
+            log.info("adding ATRecovery module " + module);
             recoveryModules.add(module);
+            log.info("added ATRecovery module " + module);
         }
     }
 
@@ -385,4 +389,6 @@ public class XTSATRecoveryManagerImple extends XTSATRecoveryManager {
     private TxLog txLog;
 
     private final static String type = ATParticipantRecoveryRecord.type();
+    
+    private static Logger log = org.jboss.logging.Logger.getLogger(XTSATRecoveryManagerImple.class);
 }

@@ -2,6 +2,7 @@ package org.jboss.jbossts.xts.recovery.participant.ba;
 
 import com.arjuna.ats.arjuna.objectstore.TxLog;
 import org.jboss.jbossts.xts.recovery.logging.RecoveryLogger;
+import org.jboss.logging.Logger;
 
 import com.arjuna.ats.arjuna.state.OutputObjectState;
 import com.arjuna.ats.arjuna.common.Uid;
@@ -35,12 +36,15 @@ public class XTSBARecoveryManagerImple extends XTSBARecoveryManager {
      */
     public void registerRecoveryModule(XTSBARecoveryModule module) throws NullPointerException
     {
+        log.info("enter registerRecoveryModule");
         // TODO other sanity checks?
         if (module == null) {
             throw new NullPointerException("XTSBARecoveryModule value must be non-null");
         }
 
+        log.info("adding BARecovery module " + module);
         recoveryModules.add(module);
+        log.info("added BARecovery module " + module);
     }
 
     /**
@@ -371,4 +375,6 @@ public class XTSBARecoveryManagerImple extends XTSBARecoveryManager {
     private TxLog txLog;
 
     private final static String type = BAParticipantRecoveryRecord.type();
+    
+    private static Logger log = org.jboss.logging.Logger.getLogger(XTSBARecoveryManagerImple.class);
 }

@@ -6,6 +6,8 @@ import org.jboss.jbossts.xts.recovery.participant.ba.XTSBARecoveryModule;
 import org.jboss.jbossts.xts.recovery.participant.ba.XTSBARecoveryManager;
 import org.jboss.jbossts.xts.servicetests.service.Constants;
 import org.jboss.jbossts.xts.servicetests.service.participant.DurableTestParticipant;
+import org.jboss.logging.Logger;
+
 import com.arjuna.wst.Durable2PCParticipant;
 import com.arjuna.wst.BusinessAgreementWithParticipantCompletionParticipant;
 import com.arjuna.wst.BusinessAgreementWithCoordinatorCompletionParticipant;
@@ -30,6 +32,11 @@ public class TestBARecoveryModule implements XTSBARecoveryModule
     private static int serviceCount = 0;
 
     /**
+     * log
+     */
+    private static Logger log = org.jboss.logging.Logger.getLogger(TestBARecoveryModule.class);
+            
+    /**
      * called during deployment of a test service to ensure the recovery module for the
      * test is installed whenever any of the services is active
      */
@@ -39,7 +46,9 @@ public class TestBARecoveryModule implements XTSBARecoveryModule
             theRecoveryModule = new TestBARecoveryModule();
         }
         if (serviceCount == 0) {
+            log.info("registering TestBARecoveryModule");
             XTSBARecoveryManager.getRecoveryManager().registerRecoveryModule(theRecoveryModule);
+            log.info("registered TestBARecoveryModule");
         }
         serviceCount++;
     }
