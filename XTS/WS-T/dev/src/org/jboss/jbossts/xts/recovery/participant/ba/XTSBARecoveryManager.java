@@ -1,6 +1,7 @@
 package org.jboss.jbossts.xts.recovery.participant.ba;
 
 import com.arjuna.ats.arjuna.common.Uid;
+import org.jboss.logging.Logger;
 
 import java.util.NoSuchElementException;
 
@@ -23,6 +24,7 @@ public abstract class XTSBARecoveryManager {
      */
     public static XTSBARecoveryManager getRecoveryManager()
     {
+        log.info("return " + theRecoveryManager);
         return theRecoveryManager;
     }
 
@@ -33,6 +35,7 @@ public abstract class XTSBARecoveryManager {
      */
     public static XTSBARecoveryManager setRecoveryManager(XTSBARecoveryManager recoveryManager)
     {
+        log.info("setRecoveryManager " + recoveryManager);
         XTSBARecoveryManager old = theRecoveryManager;
         theRecoveryManager = recoveryManager;
 
@@ -157,4 +160,9 @@ public abstract class XTSBARecoveryManager {
      */
 
     private static XTSBARecoveryManager theRecoveryManager = null;
+
+    /**
+     * the logger for the recovery manager
+     */
+    private static Logger log = org.jboss.logging.Logger.getLogger(XTSBARecoveryManager.class);
 }
