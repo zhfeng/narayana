@@ -26,7 +26,7 @@ public class TestATRecoveryModule implements XTSATRecoveryModule
      * a count of how many xts test services are currently installed
      */
     private static int serviceCount = 0;
-    
+
     /**
      * log
      */
@@ -43,7 +43,20 @@ public class TestATRecoveryModule implements XTSATRecoveryModule
         }
         if (serviceCount == 0) {
             log.info("registering TestATRecoveryModule");
-            XTSATRecoveryManager.getRecoveryManager().registerRecoveryModule(theRecoveryModule);
+
+            XTSATRecoveryManager recoveryManager;
+            do {
+                recoveryManager = XTSATRecoveryManager.getRecoveryManager();
+                if(recoveryManager == null) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        /** ignore */
+                    }
+                }
+            } while (recoveryManager == null);
+            recoveryManager.registerRecoveryModule(theRecoveryModule);
+
             log.info("registered TestATRecoveryModule");
         }
         serviceCount++;

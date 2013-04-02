@@ -35,7 +35,7 @@ public class TestBARecoveryModule implements XTSBARecoveryModule
      * log
      */
     private static Logger log = org.jboss.logging.Logger.getLogger(TestBARecoveryModule.class);
-            
+
     /**
      * called during deployment of a test service to ensure the recovery module for the
      * test is installed whenever any of the services is active
@@ -47,7 +47,20 @@ public class TestBARecoveryModule implements XTSBARecoveryModule
         }
         if (serviceCount == 0) {
             log.info("registering TestBARecoveryModule");
-            XTSBARecoveryManager.getRecoveryManager().registerRecoveryModule(theRecoveryModule);
+
+            XTSBARecoveryManager recoveryManager;
+            do {
+                recoveryManager = XTSBARecoveryManager.getRecoveryManager();
+                if(recoveryManager == null) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        /** ignore */
+                    }
+                }
+            } while(recoveryManager == null);
+            recoveryManager.registerRecoveryModule(theRecoveryModule);
+
             log.info("registered TestBARecoveryModule");
         }
         serviceCount++;
@@ -107,7 +120,7 @@ public class TestBARecoveryModule implements XTSBARecoveryModule
             // using serialization
             throw new Exception("xts service test : invalid request to recreate() WS-BA coordinator completion participant " + id);
         }
-        
+
         return null;
     }
 
