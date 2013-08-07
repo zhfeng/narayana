@@ -127,6 +127,7 @@ public class ParticipantProcessorImpl extends ParticipantProcessor
         final InstanceIdentifier instanceIdentifier = arjunaContext.getInstanceIdentifier() ;
         final ParticipantInboundEvents participant = getParticipant(instanceIdentifier) ;
 
+        System.out.println("prepare " + participant + " with " + instanceIdentifier);
         if (participant != null)
         {
             try

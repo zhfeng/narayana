@@ -44,6 +44,8 @@ public class ActivatedObjectProcessor
      */
     public synchronized void activateObject(final Object object, final String identifier)
     {
+        System.out.println("activateObject " + object + " with " + identifier);
+
         objectMap.put(identifier, object);
         identifierMap.put(object, identifier);
     }
@@ -54,9 +56,11 @@ public class ActivatedObjectProcessor
      */
     public synchronized void deactivateObject(final Object object)
     {
+        System.out.println("deactivateObject " + object);
         String identifier = (String) identifierMap.remove(object) ;
         if (identifier != null)
         {
+            System.out.println("remove " + identifier);
             objectMap.remove(identifier) ;
         }
     }

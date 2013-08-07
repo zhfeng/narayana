@@ -104,7 +104,12 @@ public class CoordinatorPortTypeImpl // implements CoordinatorPortType
 
         TaskManager.getManager().queueTask(new Task() {
             public void executeTask() {
+                System.out.println("starting readOnly");
+                try {
+                    Thread.sleep(3*1000);
+                } catch(Exception e) {};
                 CoordinatorProcessor.getProcessor().readOnly(readOnly, inboundMap, arjunaContext) ;
+                System.out.println("ended readOnly");
             }
         }) ;
     }

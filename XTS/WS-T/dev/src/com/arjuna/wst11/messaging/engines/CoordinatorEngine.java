@@ -225,6 +225,7 @@ public class CoordinatorEngine implements CoordinatorInboundEvents
         {
             if (current != State.STATE_ABORTING)
             {
+                System.out.println("set readOnly true");
                 this.readOnly = true ;
             }
             forget() ;
@@ -544,7 +545,7 @@ public class CoordinatorEngine implements CoordinatorInboundEvents
     private void forget()
     {
         // first, change state to null to indicate that the participant has completed.
-
+        System.out.println("forget change state null");
         changeState(null) ;
 
         // participants which have not been recovered from the log can be deactivated now.
@@ -557,6 +558,7 @@ public class CoordinatorEngine implements CoordinatorInboundEvents
         // participant and resend the commit since the commit/committed exchange is idempotent.
 
         if (!recovered) {
+            System.out.println("forget deactivateCoordinator");
             CoordinatorProcessor.getProcessor().deactivateCoordinator(this) ;
         }
     }

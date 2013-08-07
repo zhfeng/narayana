@@ -45,6 +45,7 @@ public class CoordinatorProcessorImpl extends CoordinatorProcessor
      * @param coordinator The coordinator.
      */
     public void deactivateCoordinator(CoordinatorInboundEvents coordinator) {
+        System.out.println("deactivateCoordinator " + coordinator);
         activatedObjectProcessor.deactivateObject(coordinator);
     }
 
