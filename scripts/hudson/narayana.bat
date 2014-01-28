@@ -21,7 +21,7 @@ git clone https://github.com/jbosstm/jboss-as.git
 if %ERRORLEVEL% NEQ 0 exit -1
 cd jboss-as
 git remote add upstream https://github.com/wildfly/wildfly.git
-git pull --rebase --ff-only -s recursive -Xtheirs upstream master
+rem git pull --rebase --ff-only -s recursive -Xtheirs upstream master
 if %ERRORLEVEL% NEQ 0 exit -1
 
 echo "Pick HornetQ commit"
@@ -75,6 +75,9 @@ echo "Started server"
 
 rem BUILD BLACKTIE
 call build.bat -f blacktie\pom.xml clean install "-Djbossas.ip.addr=%JBOSSAS_IP_ADDR%" "-DskipTests"|| (call:fail_build & exit -1)
+
+echo "Deploy blacktie-admin-ear"
+call build.bat -f blacktie\blacktie-admin-services\ear\pom.xml clean install
 
 rem LOOP TESTS QUEUE
 echo "Loop test_stored_message_schedule"
