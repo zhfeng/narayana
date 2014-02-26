@@ -95,6 +95,15 @@ void TestTPConnect::test_tpconnect() {
 	free(cdS);
 }
 
+void TestTPConnect::test_loop_tpconnect() {
+	int i;
+	for (i = 0; i < 1000; i++) {
+		test_tpconnect();
+		tearDown();
+		setUp();
+	}
+}
+
 void TestTPConnect::test_tpacall_to_TPCONV_fails() {
 	btlogger((char*) "test_tpacall_to_TPCONV_fails");
 

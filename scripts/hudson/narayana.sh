@@ -292,7 +292,7 @@ function blacktie {
   fi
 
   # BUILD BLACKTIE
-  ./build.sh -f blacktie/pom.xml clean install -Djbossas.ip.addr=$JBOSSAS_IP_ADDR "$@"
+  ./build.sh -f blacktie/pom.xml clean install -Djbossas.ip.addr=$JBOSSAS_IP_ADDR "$@" -DskipTests
   if [ "$?" != "0" ]; then
   	ps -f
 	  for i in `ps -eaf | grep java | grep "standalone.*xml" | grep -v grep | cut -c10-15`; do kill -9 $i; done
@@ -303,6 +303,12 @@ function blacktie {
     ps -f
   	fatal "Some tests failed: $BUILD_URL"
   fi
+
+  # DEPLOY BLACKTAIE-ADMIN-EAR
+  ./build.sh -f blacktie/blacktie-admin-services/ear/pom.xml clean install -Djbossas.as.ip.addr=$JBOSSAS_IP_ADDR "$@"
+
+  # RUN TestTPConnect
+  ./build.sh -f blacktie/xatmi/pom.xml clean test -Dtest.includes=Base*.cxx,TestTPConnect
 
   # KILL ANY BUILD REMNANTS
   ps -f
