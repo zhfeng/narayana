@@ -2,30 +2,6 @@ if not defined WORKSPACE (call:fail_build & exit -1)
 for /f "usebackq delims=<,> tokens=3" %%i in (`findstr "jboss-as.version" pom.xml`) do @set WILDFLY_MASTER_VERSION=%%i
 echo "Set WILDFLY_MASTER_VERSION=%WILDFLY_MASTER_VERSION%"
 
-call:comment_on_pull "Started testing this pull request with BLACKTIE profile on Windows: %BUILD_URL%"
-
-call build.bat clean install "-DskipTests" || (call:comment_on_pull "BLACKTIE profile tests failed on Windows - Narayana Failed %BUILD_URL%" & exit -1)
-
-echo "Cloning AS"
-rmdir /S /Q jboss-as
-git clone https://github.com/jbosstm/jboss-as.git
-if %ERRORLEVEL% NEQ 0 exit -1
-cd jboss-as
-git remote add upstream https://github.com/wildfly/wildfly.git
-if defined AS_BRANCH git fetch origin +refs/pull/*/head:refs/remotes/jbosstm/pull/*/head & git checkout %AS_BRANCH%
-git pull --rebase --ff-only -s recursive -Xtheirs upstream master
-if %ERRORLEVEL% NEQ 0 exit -1
-for /f "usebackq delims=<,> tokens=3" %%i in (`gawk "/wildfly-parent/ {getline;print;}" pom.xml`) do @set WILDFLY_VERSION_FROM_JBOSS_AS=%%i
-echo "AS version is %WILDFLY_VERSION_FROM_JBOSS_AS%"
-if not "%WILDFLY_MASTER_VERSION%" == "%WILDFLY_VERSION_FROM_JBOSS_AS%" (call:comment_on_pull "Need to upgrade the jboss-as.version in the narayana pom.xml to %WILDFLY_VRESION_FROM_JBOSS_AS% - Check AS Version Failed %BUILD_URL%" & exit -1)
-echo "Building AS"
-set MAVEN_OPTS="-Xmx768M"
-call build.bat clean install "-DskipTests" "-Drelease=true" || (call:comment_on_pull "BLACKTIE profile tests failed on Windows - AS Failed %BUILD_URL%" & exit -1)
-cd ..\
-
-echo "Building Blacktie Subsystem"
-call build.bat -f blacktie\wildfly-blacktie\pom.xml clean install || (call:comment_on_pull "BLACKTIE profile tests failed on Windows - Build Blacktie Subsystem Failed %BUILD_URL%" & exit -1)
-
 echo "Building BlackTie
 cd blacktie
 rmdir wildfly-%WILDFLY_MASTER_VERSION% /s /q
@@ -62,7 +38,8 @@ echo "Started server"
 @ping 127.0.0.1 -n 20 -w 1000 > nul
 
 rem BUILD BLACKTIE
-call build.bat -f blacktie\pom.xml clean install "-Djbossas.ip.addr=%JBOSSAS_IP_ADDR%" || (call:fail_build & exit -1)
+call build.bat -f blacktie\blacktie-admin-services\ear\pom.xml clean install "-Djbossas.ip.addr=%JBOSSAS_IP_ADDR%"
+call build.bat -f blacktie\btadmin\pom.xml clean install "-Djbossas.ip.addr=%JBOSSAS_IP_ADDR%" "-Dtest=AdvertiseTest"|| (call:fail_build & exit -1)
 
 rem SHUTDOWN ANY PREVIOUS BUILD REMNANTS
 tasklist & FOR /F "usebackq tokens=5" %%i in (`"netstat -ano|findstr 9990.*LISTENING"`) DO taskkill /F /PID %%i

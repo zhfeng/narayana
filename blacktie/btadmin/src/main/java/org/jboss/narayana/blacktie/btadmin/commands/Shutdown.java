@@ -169,10 +169,11 @@ public class Shutdown implements Command {
         } else if(OS.indexOf("win") >= 0) {
             log.debug(OS + " check for windows ");
             if(id != 0) {
-                cmd = "wmic process get commandline | findstr /c:\"\\-i " + id + " \\-s " + name + "\" | findstr /v findstr";
+                cmd = "C:\\Windows\\System32\\Wbem\\wmic process get commandline | findstr /c:\"\\-i " + id + " \\-s " + name + "\" | findstr /v findstr";
             } else {
-                cmd = "wmic process get commandline | findstr /c:\"\\-s " + name + "\" | findstr /v findstr";
+                cmd = "C:\\Windows\\System32\\Wbem\\wmic process get commandline | findstr /c:\"\\-s " + name + "\" | findstr /v findstr";
             }
+
             log.debug(cmd);
             pb = new ProcessBuilder("cmd", "/c", cmd);
         } else {
