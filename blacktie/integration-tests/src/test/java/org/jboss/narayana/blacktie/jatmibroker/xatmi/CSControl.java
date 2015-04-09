@@ -17,6 +17,7 @@
  */
 package org.jboss.narayana.blacktie.jatmibroker.xatmi;
 
+import java.lang.reflect.Field;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,14 +54,30 @@ public abstract class CSControl extends TestCase {
         try {
             if (server != null) {
                 log.debug("destroying server process");
-                server.interrupt();
-                server.getProcess().destroy();
-                log.debug("destroyed server process");
+                try {
+                    int pid = getUnixPID(server.getProcess());
+                    Runtime.getRuntime().exec("kill -INT " + pid).waitFor();
+                } catch (IllegalArgumentException e) {
+                    server.getProcess().destroy();
+                }
                 server.getProcess().waitFor();
+                log.debug("destroyed server process");
             }
             log.debug("waited for server process");
         } catch (Throwable e) {
             throw new RuntimeException("Server shutdown error: ", e);
+        }
+    }
+
+    public int getUnixPID(Process process) throws Exception {
+        if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+            Class cl = process.getClass();
+            Field field = cl.getDeclaredField("pid");
+            field.setAccessible(true);
+            Object pidObject = field.get(process);
+            return (Integer) pidObject;
+        } else {
+            throw new IllegalArgumentException("Needs to be a UNIXProcess");
         }
     }
 
