@@ -24,6 +24,7 @@ package org.jboss.narayana.tomcat.jta.integration.app;
 
 import com.arjuna.ats.arjuna.recovery.RecoveryManager;
 import com.arjuna.ats.internal.jta.recovery.arjunacore.XARecoveryModule;
+import org.apache.tomcat.dbcp.dbcp2.DelegatingConnection;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -39,6 +40,7 @@ import javax.transaction.UserTransaction;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -118,6 +120,24 @@ public class TestExecutor {
         } finally {
             if (connection != null) {
                 connection.close();
+
+                // This is necessary for H2 to fully reset the connection
+                try {
+                    Field _connField = DelegatingConnection.class.getDeclaredField("_conn");
+                    _connField.setAccessible(true);
+                    Object o = _connField.get(connection);
+                    o = _connField.get(o);
+                    Field currentTransactionField = o.getClass().getEnclosingClass().getDeclaredField("currentTransaction");
+                    currentTransactionField.setAccessible(true);
+                    Field enclosing = o.getClass().getDeclaredField("this$0");
+                    enclosing.setAccessible(true);
+                    o = enclosing.get(o);
+                    currentTransactionField.set(o, null);
+                } catch (NullPointerException e) {
+                    // This should happen for non-H2
+                } catch (NoSuchFieldException e) {
+                } catch (IllegalAccessException e) {
+                }
             }
             updateXARecoveryModule(m -> m.removeXAResourceRecoveryHelper(testXAResource));
         }
