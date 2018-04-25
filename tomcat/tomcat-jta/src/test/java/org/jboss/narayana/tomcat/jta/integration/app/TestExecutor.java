@@ -97,13 +97,15 @@ public class TestExecutor {
         createTestTable();
         String testEntry = "test-entry-" + LocalTime.now();
         TestXAResource testXAResource = new TestXAResource();
+        Connection connection = null;
 
         updateXARecoveryModule(m -> m.addXAResourceRecoveryHelper(testXAResource));
 
         try {
             getTransactionManager().begin();
             getTransactionManager().getTransaction().enlistResource(testXAResource);
-            writeToTheDatabase(testEntry);
+            connection = getTransactionalDataSource().getConnection();
+            writeToTheDatabase(connection, testEntry);
             try {
                 getTransactionManager().commit();
                 return Response.serverError().entity("Commit failure was expected").build();
@@ -112,8 +114,11 @@ public class TestExecutor {
                 RecoveryManager.manager().scan();
             }
 
-            return getRecoveryTestResponse(testEntry);
+            return getRecoveryTestResponse(connection, testEntry);
         } finally {
+            if (connection != null) {
+                connection.close();
+            }
             updateXARecoveryModule(m -> m.removeXAResourceRecoveryHelper(testXAResource));
         }
     }
@@ -123,42 +128,40 @@ public class TestExecutor {
                 .forEach(m -> action.accept((XARecoveryModule) m));
     }
 
-    private Response getRecoveryTestResponse(String testEntry) throws SQLException, NamingException {
-        if (didRecoveryHappen(testEntry)) {
+    private Response getRecoveryTestResponse(Connection connection, String testEntry) throws SQLException, NamingException {
+        if (didRecoveryHappen(connection, testEntry)) {
             return Response.noContent().build();
         }
 
         return Response.serverError().entity("Recovery failed").build();
     }
 
-    private boolean didRecoveryHappen(String entry) throws SQLException, NamingException {
+    private boolean didRecoveryHappen(Connection connection, String entry) throws SQLException, NamingException {
         List<String> expectedMethods = Arrays.asList("start", "end", "prepare", "commit");
         List<String> actualMethods = TestXAResource.getMethodCalls();
         LOGGER.info("Verifying TestXAResource methods. Expected=" + expectedMethods + ", actual=" + actualMethods);
 
-        boolean entryExists = doesEntryExist(entry);
+        boolean entryExists = doesEntryExist(connection, entry);
         LOGGER.info("Verifying if database entry exists:" + entryExists);
 
         return expectedMethods.equals(actualMethods) && entryExists;
     }
 
-    private boolean doesEntryExist(String entry) throws SQLException, NamingException {
+    private boolean doesEntryExist(Connection connection, String entry) throws SQLException, NamingException {
         String query = "SELECT COUNT(*) FROM test WHERE value='" + entry + "'";
-        try (Connection connection = getTransactionalDataSource().getConnection();
+        try{
              Statement statement = connection.createStatement();
-             ResultSet result = statement.executeQuery(query)) {
+             ResultSet result = statement.executeQuery(query);
             return result.next() && result.getInt(1) > 0;
         } catch (SQLException e) {
             return false;
         }
     }
 
-    private void writeToTheDatabase(String entry) throws NamingException, SQLException {
+    private void writeToTheDatabase(Connection connection, String entry) throws NamingException, SQLException {
         String query = "INSERT INTO test VALUES ('" + entry + "')";
-        try (Connection connection = getTransactionalDataSource().getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.execute(query);
-        }
+        Statement statement = connection.createStatement();
+        statement.execute(query);
     }
 
     private UserTransaction getUserTransaction() throws NamingException {
@@ -179,10 +182,16 @@ public class TestExecutor {
 
     private void createTestTable() throws SQLException, NamingException {
         String query = "CREATE TABLE IF NOT EXISTS test (value VARCHAR(100))";
-        try (Connection connection = getTransactionalDataSource().getConnection();
-             Statement statement = connection.createStatement()) {
+        Connection connection = null;
+
+        try {
+            connection = getTransactionalDataSource().getConnection();
+            Statement statement = connection.createStatement();
             statement.execute(query);
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
-
 }
