@@ -729,14 +729,11 @@ function qa_tests_once {
   sed -e "s#^COMMAND_LINE_0=.*#COMMAND_LINE_0=${JAVA_HOME}/bin/java#" TaskImpl.properties > "TaskImpl.properties.tmp" && mv "TaskImpl.properties.tmp" "TaskImpl.properties"
   [ $? = 0 ] || fatal "sed TaskImpl.properties failed"
 
+  openjdkjar="dist/narayana-full-${NARAYANA_CURRENT_VERSION}/lib/ext/openjdk-orb.jar"
   if [ $orbtype = "openjdk" ]; then
-    openjdkjar="dist/narayana-full-${NARAYANA_CURRENT_VERSION}/lib/ext/openjdk-orb.jar"
-    if [ $JAVA_VERSION -ge "9" ]; then
-        EXTRA_QA_SYSTEM_PROPERTIES="--patch-module java.corba=$openjdkjar $EXTRA_QA_SYSTEM_PROPERTIES"
-    else
+    if [ $JAVA_VERSION -lt "9" ]; then
         EXTRA_QA_SYSTEM_PROPERTIES="-Xbootclasspath/p:$openjdkjar $EXTRA_QA_SYSTEM_PROPERTIES"
     fi
-    orbtype="idlj"
   fi
 
   if [[ x"$EXTRA_QA_SYSTEM_PROPERTIES" != "x" ]]; then
@@ -763,6 +760,10 @@ function qa_tests_once {
     ant -Dorbtype=$orbtype "$QA_BUILD_ARGS" dist
 
   [ $? = 0 ] || fatal "qa build failed"
+
+  if [ $orbtype = "idlj" ]; then
+    rm -f "$openjdkjar"
+  fi
 
   if [ $orbtype = "jacorb" ]; then
     sed -e "s#^jacorb.log.default.verbosity=.*#jacorb.log.default.verbosity=2#"   dist/narayana-full-${NARAYANA_CURRENT_VERSION}/jacorb/etc/jacorb.properties > "dist/narayana-full-${NARAYANA_CURRENT_VERSION}/jacorb/etc/jacorb.properties.tmp" && mv "dist/narayana-full-${NARAYANA_CURRENT_VERSION}/jacorb/etc/jacorb.properties.tmp" "dist/narayana-full-${NARAYANA_CURRENT_VERSION}/jacorb/etc/jacorb.properties"
@@ -845,7 +846,7 @@ function qa_tests {
   fi
 
   if [ $IBM_ORB = 1 ]; then
-    qa_tests_once "orb=ibmorb" "$@" # run qa against the Sun orb
+    qa_tests_once "orb=ibmorb" "$@" # run qa against the IBM orb
     ok3=$?
   else
     if [ $SUN_ORB = 1 ]; then

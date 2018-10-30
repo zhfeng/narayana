@@ -270,22 +270,9 @@
       <activation>
         <jdk>[1.9,)</jdk>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <additionalJOptions>
-                <additionalJOption>--add-modules</additionalJOption>
-                <additionalJOption>java.xml.bind</additionalJOption>
-                <additionalJOption>--add-modules</additionalJOption>
-                <additionalJOption>java.xml.ws</additionalJOption>
-              </additionalJOptions>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <additionalJOption>--add-modules=java.xml.ws</additionalJOption>
+      </properties>
     </profile>
   </profiles>
 </project>

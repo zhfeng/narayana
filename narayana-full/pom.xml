@@ -124,12 +124,6 @@
       <classifier>participant</classifier>
       <type>war</type>
     </dependency>
-    <!-- This dependency should be removed in JBTM-3056 -->
-    <dependency>
-      <groupId>org.jboss.narayana.xts</groupId>
-      <artifactId>xts-test-servlet</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.jboss.narayana</groupId>
       <artifactId>jbosstxbridge</artifactId>
@@ -390,6 +384,16 @@
             <scope>provided</scope>
           </dependency>
       </dependencies>
+    </profile>
+    <profile>
+      <id>j9</id>
+      <activation>
+        <jdk>[1.9,)</jdk>
+      </activation>
+      <properties>
+        <additionalJOption>--add-modules=java.xml.ws</additionalJOption>
+	<maven.javadoc.failOnError>false</maven.javadoc.failOnError>
+      </properties>
     </profile>
   </profiles>
 </project>
