@@ -110,13 +110,17 @@
 
   <target name="jts.cp">
     <echo>copying ${orbtype} jts</echo>
-    <copy file="${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/lib/jts/narayana-jts-${orbtype}.jar" tofile="${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/lib/jbossjts.jar"/>
+    <condition property="orb.type" value="idlj" else="${orbtype}">
+	    <equals arg1="${orbtype}" arg2="openjdk"/>
+    </condition>
+    <echo message="orb.type: ${orb.type}"/>
+    <copy file="${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/lib/jts/narayana-jts-${orb.type}.jar" tofile="${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/lib/jbossjts.jar"/>
   </target>
 
   <target name="dist" depends="clean, init, buildtype">
     <!-- build the test suite -->
     <ant dir="tests" antfile="build-${buildtype}.xml">
-      <property name="orbtype" value="${orbtype}"/>
+      <property name="orbtype" value="${orb.type}"/>
       <property name="org.jboss.jbossts.qa.server_manager_location" value="${org.jboss.jbossts.qa.server_manager_location}"/>
     </ant>
   </target>

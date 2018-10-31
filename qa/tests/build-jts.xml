@@ -26,13 +26,19 @@
     </taskdef>
 
     <condition property="is.jdk9">
-      <equals arg1="${ant.java.version}" arg2="1.9"/>
+        <or>
+            <equals arg1="${ant.java.version}" arg2="1.9"/>
+            <equals arg1="${ant.java.version}" arg2="9"/>
+        </or>
+    </condition>
+    <condition property="orb.type" value="idlj" else="${orbtype}">
+	    <equals arg1="${orbtype}" arg2="openjdk"/>
     </condition>
 
 	<!-- set this property to the location of a JBossTS JTS build -->
 	<property name="org.jboss.jbossts.qa.ts.home" location="../dist"/>
 	<property name="narayana.version" value="5.9.1.Final-SNAPSHOT"/>
-	<property name="orbtype" value="jacorb"/>
+	<property name="orb.type" value="jacorb"/>
 
 	<!-- set properties for AS testing -->
 	<property environment="env"/>
@@ -54,6 +60,7 @@
 
 	<target name="setIdlProps">
 	<echo message="ant.java.version is ${ant.java.version}"/>
+	<echo message="orb.type is ${orb.type}"/>
         <if>
            <isset property="is.jdk9"/>
            <then>
@@ -64,9 +71,9 @@
            </else>
         </if>
         <if>
-	         <equals arg1="${orbtype}" arg2="ibmorb" />
+	         <equals arg1="${orb.type}" arg2="ibmorb" />
         <then>
-            <property name="jts.idl.tests.jar" value="${jts.build.dir}/idl/${orbtype}/target/idlj-idl-${narayana.version}-tests.jar"/>
+            <property name="jts.idl.tests.jar" value="${jts.build.dir}/idl/${orb.type}/target/idlj-idl-${narayana.version}-tests.jar"/>
             <property name="org.jboss.jbossts.qa.orb.home" value="${env.JAVA_HOME}"/>
             <property name="org.jboss.jbossts.qa.orb.classpath" value="${org.jboss.jbossts.qa.orb.home}/lib/ibmorbtools.jar;${org.jboss.jbossts.qa.orb.home}/jre/lib/ibmorb.jar"/>
             <property name="idl.params1" value="include='${org.jboss.jbossts.qa.orb.home}/lib;${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/idl/;../../ArjunaJTS/idl/src/test/idl/TestModule.idl',classpath='${org.jboss.jbossts.qa.orb.classpath}'"/>
@@ -75,9 +82,9 @@
             <property name="is.ibmorb" value="1"/>
         </then>
         <elseif>
-	         <equals arg1="${orbtype}" arg2="idlj" />
+	         <equals arg1="${orb.type}" arg2="idlj" />
         <then>
-            <property name="jts.idl.tests.jar" value="${jts.build.dir}/idl/${orbtype}/${orbtype}-tests/target/idlj-idl-${narayana.version}-tests.jar"/>
+            <property name="jts.idl.tests.jar" value="${jts.build.dir}/idl/${orb.type}/${orb.type}-tests/target/idlj-idl-${narayana.version}-tests.jar"/>
 		    <property name="org.jboss.jbossts.qa.orb.home" value="${env.JAVA_HOME}"/>
             <property name="org.jboss.jbossts.qa.orb.classpath" value="${org.jboss.jbossts.qa.orb.home}/lib/idl.jar;${org.jboss.jbossts.qa.orb.home}/lib/logkit-1.2.jar"/>
             <property name="idl.params1" value="include='${org.jboss.jbossts.qa.orb.home}/${orb.idl.path};${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/idl/;${jts.build.dir}/idl/src/test/idl/TestModule.idl',classpath='${org.jboss.jbossts.qa.orb.classpath}'"/>
@@ -87,9 +94,9 @@
         </then>
         </elseif>
         <elseif>
-	        <equals arg1="${orbtype}" arg2="jacorb" />
+	        <equals arg1="${orb.type}" arg2="jacorb" />
         <then>
-            <property name="jts.idl.tests.jar" value="${jts.build.dir}/idl/${orbtype}/target/jacorb-idl-${narayana.version}-tests.jar"/>
+            <property name="jts.idl.tests.jar" value="${jts.build.dir}/idl/${orb.type}/target/jacorb-idl-${narayana.version}-tests.jar"/>
 		    <property name="org.jboss.jbossts.qa.orb.home" value="${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/jacorb"/>
 		    <property name="org.jboss.jbossts.qa.orb.classpath" value="${org.jboss.jbossts.qa.orb.home}/lib/idl.jar;${org.jboss.jbossts.qa.orb.home}/lib/logkit-1.2.jar"/>
             <property name="idl.params1" value="include='${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/idl/;${org.jboss.jbossts.qa.ts.home}/narayana-full-${narayana.version}/jacorb/idl/omg;${jts.build.dir}/idl/src/test/idl/TestModule.idl',classpath='${org.jboss.jbossts.qa.orb.classpath}'"/>
@@ -99,7 +106,7 @@
         </then>
         </elseif>
         <else>
-            <fail message="Unsupported orbtype: ${orbtype}"/>
+            <fail message="Unsupported orb.type: ${orb.type}"/>
         </else>
         </if>
 
@@ -122,7 +129,7 @@
             <pathelement location="../ext/junit.jar"/>
             <pathelement location="../ext/jboss-profiler-jvmti.jar"/>
             <pathelement location="${jts.build.dir}/jts/build/lib/jts_tests.jar"/>
-            <!-- added this for j9 since the orb type name is slightly inconsistent. Also retest on the other orbtypes -->
+            <!-- added this for j9 since the orb type name is slightly inconsistent. Also retest on the other orb.types -->
             <pathelement location="${jts.idl.tests.jar}"/>
         </path>
 	</target>
@@ -248,13 +255,13 @@
         </idl-build-list>
 
         <!-- see idl-compiler-definitions.xml -->
-		<idl-compiler orb="${orbtype}"
+		<idl-compiler orb="${orb.type}"
 					  buildlist="${idl.buildlist}"
 					  verbose="false" debug="false"
 					  destdir="${org.jboss.jbossts.qa.build.idl}"
 					  parameters="${idl.params1}" />
             
-		<idl-compiler orb="${orbtype}"
+		<idl-compiler orb="${orb.type}"
 					  buildlist="${org.jboss.jbossts.qa.jts.idl.buildlist}"
 					  verbose="false" debug="false"
 					  destdir="${org.jboss.jbossts.qa.build.idl}"
